@@ -18,7 +18,7 @@ pitstop-predictor/
 ## Current Progress
 
 - [x] **Sprint 1** — 2D track simulation: elliptical circuit, multi-car movement, lap counting, HUD
-- [x] **Sprint 2** — Tire degradation, driving styles, traffic model, tire wear HUD *(in progress — safety car & pit lane remaining)*
+- [ ] **Sprint 2** — Tire degradation, driving styles, traffic model, tire wear HUD *(in progress — safety car & pit lane remaining)*
 - [ ] **Sprint 3** — Feature extraction, oracle labeling, CSV dataset generation
 - [ ] **Sprint 4** — NumPy neural network, training pipeline, evaluation metrics
 - [ ] **Sprint 5** — Live prediction integration, dashboard UI, demo
