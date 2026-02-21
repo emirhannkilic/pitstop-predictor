@@ -41,6 +41,10 @@ class Car:
         self.pit_timer = 0.0
         self.pit_phase = "racing"  # racing | pit_in | pit_stop | pit_out
 
+        # for feature extraction (Sprint 3)
+        self.lap_speeds = []           # last N lap-end speeds (for recent_pace_drop)
+        self.seconds_in_traffic = 0.0  # consecutive time with traffic_factor < 1
+
     def update(self, dt, track=None):
         old_angle = self.angle
 
@@ -63,12 +67,20 @@ class Car:
         current_speed = self.base_speed * self.tire_factor * self.traffic_factor * self.sc_factor
         self.angle = (self.angle + current_speed * dt) % TWO_PI
 
+        if self.traffic_factor < 1.0:
+            self.seconds_in_traffic += dt
+        else:
+            self.seconds_in_traffic = 0.0
+
         self.x = self.center_x + self.radius_x * math.cos(self.angle)
         self.y = self.center_y + self.radius_y * math.sin(self.angle)
 
         if old_angle > 5.0 and self.angle < 1.0:
             self.lap_count += 1
             self.laps_since_pit += 1
+            self.lap_speeds.append(current_speed)
+            if len(self.lap_speeds) > 4:
+                self.lap_speeds.pop(0)
 
         if self.wants_pit and track and old_angle < self.angle:
             if old_angle < track.pit_entry_angle <= self.angle:

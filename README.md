@@ -6,11 +6,16 @@ A deep learning project that predicts optimal Formula 1 pit stop strategies usin
 
 ```
 pitstop-predictor/
-├── sim/
+├── sim/                # 2D race simulation
 │   ├── game.py         # Main loop, safety car state machine, pit trigger logic
 │   ├── car.py          # Car physics, tire wear, pit state machine (4-phase)
 │   ├── track.py        # Track geometry, pit lane (entry/exit zones, drawing)
 │   └── render.py       # HUD overlay (laps, tire bars, safety car, pit status)
+├── ml/                 # Feature extraction, oracle, data collection
+│   ├── features.py     # 9 features per car at lap start
+│   ├── oracle.py       # Rule-based pit label (0/1)
+│   └── collect_data.py # Headless sim → data/dataset.csv
+├── data/               # CSV datasets
 ├── requirements.txt
 └── README.md
 ```
@@ -19,7 +24,7 @@ pitstop-predictor/
 
 - [x] **Sprint 1** — 2D track simulation: elliptical circuit, multi-car movement, lap counting, HUD
 - [x] **Sprint 2** — Tire degradation, driving styles, traffic model, tire wear HUD, safety car, pit lane
-- [ ] **Sprint 3** — Feature extraction, oracle labeling, CSV dataset generation
+- [x] **Sprint 3** — Feature extraction, oracle labeling, CSV dataset generation
 - [ ] **Sprint 4** — NumPy neural network, training pipeline, evaluation metrics
 - [ ] **Sprint 5** — Live prediction integration, dashboard UI, demo
 
@@ -86,5 +91,15 @@ python game.py
 ```
 
 A window will open showing a 2D elliptical track with three cars racing. The HUD displays each car's lap count, a color-coded tire wear bar, pit status (IN PIT / PIT SOON), and a safety car banner when active.
+
+### Generating the dataset (Sprint 3)
+
+From the project root (with venv activated):
+
+```bash
+python ml/collect_data.py
+```
+
+This runs a headless simulation for 50 laps per car and writes `data/dataset.csv` with 9 features plus an oracle-generated `label` (0 = stay out, 1 = pit). Target pit ratio is 15–35%; the script prints the actual ratio after each run.
 
 ## License

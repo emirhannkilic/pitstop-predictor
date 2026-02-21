@@ -7,20 +7,34 @@ env/
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
 
 # IDE / Editor
 .vscode/
 .idea/
+*.swp
+*.swo
 
-# OS
+# OS files
 .DS_Store
 Thumbs.db
 
-# Not ready yet
-ml/
-data/
-models/
+# Generated data files (created by collect_data.py)
+data/*.csv
+data/*.parquet
 
-# Model artifacts
-*.pkl
+# Model artifacts (created by training)
+models/
 *.npy
+*.pkl
+*.h5
+*.pt
+
+# Test / build
+.pytest_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+*.egg
