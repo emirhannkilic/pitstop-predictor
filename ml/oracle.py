@@ -6,10 +6,12 @@ def label(features):
     gap_ahead = features.get("gap_ahead", 30.0)
     safety = features.get("safety_car_active", 0)
 
-    if safety and tw > 0.45:
+    if safety and tw > 0.35:
         return 1
-    if tw > 0.75 and pace > 0.08:
+    if tw > 0.55 and pace > 0.08:
         return 1
-    if tw > 0.65 and density > 0.6 and gap_ahead < 10:
+    if tw > 0.45 and density > 0.07 and gap_ahead < 10:
+        return 1
+    if tw > 0.70:
         return 1
     return 0

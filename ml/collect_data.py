@@ -32,9 +32,12 @@ SC_FACTOR_MAX = 0.80
 PIT_WEAR_THRESHOLD = 0.75
 
 TOTAL_LAPS = 50
+NUM_RACES = 100
 MAX_FRAMES = 200000
 FPS = 60
 DT = 1.0 / FPS
+
+STYLES = ["aggressive", "normal", "conservative"]
 
 
 def update_traffic_factors(cars):
@@ -53,19 +56,27 @@ def update_traffic_factors(cars):
             c.traffic_factor = TRAFFIC_FACTOR_MIN + (TRAFFIC_FACTOR_MAX - TRAFFIC_FACTOR_MIN) * t
 
 
-def main():
-    pygame.init()
-    pygame.display.set_mode((1, 1))
+def make_cars(track):
+    spacing = TWO_PI / 5
+    cars = []
+    for i in range(5):
+        style = random.choice(STYLES)
+        cars.append(Car(
+            angle=spacing * i,
+            speed=1.0,
+            center_x=track.center_x,
+            center_y=track.center_y,
+            radius_x=track.centerline_rx,
+            radius_y=track.centerline_ry,
+            color=(0, 0, 0),
+            car_id=i + 1,
+            driving_style=style,
+        ))
+    return cars
 
-    track = Track(center_x=600, center_y=400, radius_x=400, radius_y=250)
-    cars = [
-        Car(0, 1.0, track.center_x, track.center_y, track.centerline_rx, track.centerline_ry,
-            (255, 0, 0), 1, "aggressive"),
-        Car(2.09, 1.0, track.center_x, track.center_y, track.centerline_rx, track.centerline_ry,
-            (0, 0, 255), 2, "normal"),
-        Car(4.19, 1.0, track.center_x, track.center_y, track.centerline_rx, track.centerline_ry,
-            (0, 255, 0), 3, "conservative"),
-    ]
+
+def run_race(track):
+    cars = make_cars(track)
 
     safety_car_active = False
     safety_car_timer = 0.0
@@ -76,7 +87,6 @@ def main():
     frame = 0
 
     while frame < MAX_FRAMES:
-        # Safety car
         if safety_car_active:
             safety_car_timer -= DT
             if safety_car_timer <= 0:
@@ -106,15 +116,31 @@ def main():
             break
         frame += 1
 
+    return rows
+
+
+def main():
+    pygame.init()
+    pygame.display.set_mode((1, 1))
+
+    track = Track(center_x=600, center_y=400, radius_x=400, radius_y=250)
+    all_rows = []
+
+    for race in range(NUM_RACES):
+        rows = run_race(track)
+        all_rows.extend(rows)
+        if (race + 1) % 20 == 0:
+            print(f"  Race {race + 1}/{NUM_RACES} done — {len(all_rows)} rows so far")
+
     out_path = ROOT / "data" / "dataset.csv"
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with open(out_path, "w", newline="") as f:
         w = csv.writer(f)
         w.writerow(FEATURE_NAMES + ["label"])
-        w.writerows(rows)
+        w.writerows(all_rows)
 
-    pit_ratio = sum(r[-1] for r in rows) / len(rows) * 100 if rows else 0
-    print(f"Wrote {len(rows)} rows to {out_path}")
+    pit_ratio = sum(r[-1] for r in all_rows) / len(all_rows) * 100 if all_rows else 0
+    print(f"\nWrote {len(all_rows)} rows to {out_path}")
     print(f"Pit ratio: {pit_ratio:.1f}% (target 15–35%)")
     pygame.quit()
 
