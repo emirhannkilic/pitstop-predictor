@@ -1,13 +1,23 @@
 import math
+import random
 import pygame
 from car import Car
 from track import Track
 from render import draw_hud
 
-TRAFFIC_THRESHOLD_ANGLE = 0.20  # radians; traffic factor kicks in below this gap
+TRAFFIC_THRESHOLD_ANGLE = 0.20
 TRAFFIC_FACTOR_MIN = 0.85
 TRAFFIC_FACTOR_MAX = 0.95
 TWO_PI = 2 * math.pi
+
+SC_TRIGGER_CHANCE = 0.003      # per-frame probability when eligible
+SC_DURATION_MIN = 4.0          # seconds
+SC_DURATION_MAX = 8.0
+SC_COOLDOWN = 15.0             # seconds before another SC can trigger
+SC_FACTOR_MIN = 0.60
+SC_FACTOR_MAX = 0.80
+
+PIT_WEAR_THRESHOLD = 0.75
 
 
 def update_traffic_factors(cars):
@@ -22,7 +32,6 @@ def update_traffic_factors(cars):
         if gap >= TRAFFIC_THRESHOLD_ANGLE:
             car.traffic_factor = 1.0
         else:
-            # linear: gap 0 -> MIN, gap threshold -> MAX
             t = gap / TRAFFIC_THRESHOLD_ANGLE if TRAFFIC_THRESHOLD_ANGLE > 0 else 1.0
             car.traffic_factor = TRAFFIC_FACTOR_MIN + (TRAFFIC_FACTOR_MAX - TRAFFIC_FACTOR_MIN) * t
 
@@ -45,6 +54,11 @@ cars = [
         radius_x=track.centerline_rx, radius_y=track.centerline_ry, color=(0, 255, 0), car_id=3, driving_style="conservative"),
 ]
 
+safety_car_active = False
+safety_car_timer = 0.0
+safety_car_cooldown = 0.0
+sc_factor = 1.0
+
 running = True
 while running:
     for event in pygame.event.get():
@@ -52,16 +66,33 @@ while running:
             running = False
 
     dt = clock.tick(60) / 1000.0
-    screen.fill((20, 20, 20))
 
+    # --- safety car state machine ---
+    if safety_car_active:
+        safety_car_timer -= dt
+        if safety_car_timer <= 0:
+            safety_car_active = False
+            safety_car_cooldown = SC_COOLDOWN
+            sc_factor = 1.0
+    else:
+        safety_car_cooldown = max(0.0, safety_car_cooldown - dt)
+        if safety_car_cooldown == 0.0 and random.random() < SC_TRIGGER_CHANCE:
+            safety_car_active = True
+            safety_car_timer = random.uniform(SC_DURATION_MIN, SC_DURATION_MAX)
+            sc_factor = random.uniform(SC_FACTOR_MIN, SC_FACTOR_MAX)
+
+    screen.fill((20, 20, 20))
     track.draw(screen)
 
     update_traffic_factors(cars)
     for car in cars:
-        car.update(dt)
+        car.sc_factor = sc_factor
+        if not car.wants_pit and not car.in_pit and car.tire_wear >= PIT_WEAR_THRESHOLD:
+            car.wants_pit = True
+        car.update(dt, track)
         car.draw(screen)
 
-    draw_hud(screen, font, cars)
+    draw_hud(screen, font, cars, safety_car_active)
     pygame.display.flip()
 
 pygame.quit()
