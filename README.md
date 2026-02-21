@@ -7,10 +7,10 @@ A deep learning project that predicts optimal Formula 1 pit stop strategies usin
 ```
 pitstop-predictor/
 ├── sim/
-│   ├── game.py         # Main game loop, traffic simulation, initialization
-│   ├── car.py          # Car physics, tire degradation, driving styles
-│   ├── track.py        # Track geometry (inner/outer boundaries, centerline)
-│   └── render.py       # HUD overlay (lap counter, tire wear bars)
+│   ├── game.py         # Main loop, safety car state machine, pit trigger logic
+│   ├── car.py          # Car physics, tire wear, pit state machine (4-phase)
+│   ├── track.py        # Track geometry, pit lane (entry/exit zones, drawing)
+│   └── render.py       # HUD overlay (laps, tire bars, safety car, pit status)
 ├── requirements.txt
 └── README.md
 ```
@@ -28,9 +28,10 @@ pitstop-predictor/
 Cars follow a simplified physics model for consistent and interpretable behavior:
 
 ```
-current_speed = base_speed × tire_factor × traffic_factor
-tire_factor   = 1 − 0.30 × tire_wear
-traffic_factor = 0.75 – 1.0  (based on gap to car ahead)
+current_speed = base_speed × tire_factor × traffic_factor × sc_factor
+tire_factor    = 1 − 0.30 × tire_wear
+traffic_factor = 0.85 – 1.0   (based on gap to car ahead)
+sc_factor      = 0.60 – 0.80  (when safety car is active, else 1.0)
 ```
 
 | Driving Style | Wear Rate | Behavior |
@@ -38,6 +39,28 @@ traffic_factor = 0.75 – 1.0  (based on gap to car ahead)
 | Aggressive | 0.009 | Fastest early pace, tires degrade quickly |
 | Normal | 0.006 | Balanced pace and degradation |
 | Conservative | 0.004 | Slowest pace, tires last longest |
+
+## Safety Car
+
+A safety car event can trigger randomly during the race:
+
+- **Trigger**: ~0.3% chance per frame when no cooldown is active
+- **Duration**: 4–8 seconds, all cars slow down to 60–80% speed
+- **Cooldown**: 15 seconds after each event before a new one can occur
+- **HUD**: Yellow "SAFETY CAR" banner appears at top center
+
+## Pit Lane
+
+Cars automatically pit when tire wear reaches 75%:
+
+| Phase | Behavior |
+|---|---|
+| **PIT SOON** | `tire_wear ≥ 0.75`, car waits for pit entry angle |
+| **pit_in** | Car enters pit lane at 35% speed toward pit box |
+| **pit_stop** | Car stops for 3 seconds, tires are replaced (`tire_wear → 0`) |
+| **pit_out** | Car exits pit lane at 35% speed, rejoins the track |
+
+The pit lane is drawn as a yellow arc inside the inner boundary, with green (entry) and red (exit) markers.
 
 ## Getting Started
 
@@ -62,6 +85,6 @@ cd sim
 python game.py
 ```
 
-A window will open showing a 2D elliptical track with three cars racing. The HUD displays each car's lap count and a color-coded tire wear bar.
+A window will open showing a 2D elliptical track with three cars racing. The HUD displays each car's lap count, a color-coded tire wear bar, pit status (IN PIT / PIT SOON), and a safety car banner when active.
 
 ## License
