@@ -1,5 +1,7 @@
 # F1 Pit Stop Predictor
 
+![Demo](assets/demo.gif)
+
 A deep learning project that predicts optimal Formula 1 pit stop strategies using a neural network built from scratch with NumPy and a real-time 2D race simulation powered by Pygame.
 
 ## Project Structure
