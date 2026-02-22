@@ -11,11 +11,15 @@ pitstop-predictor/
 │   ├── car.py          # Car physics, tire wear, pit state machine (4-phase)
 │   ├── track.py        # Track geometry, pit lane (entry/exit zones, drawing)
 │   └── render.py       # HUD overlay (laps, tire bars, safety car, pit status)
-├── ml/                 # Feature extraction, oracle, data collection
+├── ml/                 # Data pipeline + NumPy NN
 │   ├── features.py     # 9 features per car at lap start
 │   ├── oracle.py       # Rule-based pit label (0/1)
-│   └── collect_data.py # Headless sim → data/dataset.csv
+│   ├── collect_data.py # Headless sim → data/dataset.csv
+│   ├── nn_numpy.py     # 2 hidden-layer NN (forward/backprop)
+│   ├── train.py        # Training + model saving
+│   └── eval.py         # Metrics + confusion matrix from saved model
 ├── data/               # CSV datasets
+├── models/             # Saved model (.npz)
 ├── requirements.txt
 └── README.md
 ```
@@ -25,7 +29,7 @@ pitstop-predictor/
 - [x] **Sprint 1** — 2D track simulation: elliptical circuit, multi-car movement, lap counting, HUD
 - [x] **Sprint 2** — Tire degradation, driving styles, traffic model, tire wear HUD, safety car, pit lane
 - [x] **Sprint 3** — Feature extraction, oracle labeling, CSV dataset generation
-- [ ] **Sprint 4** — NumPy neural network, training pipeline, evaluation metrics
+- [x] **Sprint 4** — NumPy neural network, training pipeline, evaluation metrics
 - [ ] **Sprint 5** — Live prediction integration, dashboard UI, demo
 
 ## Simulation Physics
@@ -90,7 +94,7 @@ cd sim
 python game.py
 ```
 
-A window will open showing a 2D elliptical track with three cars racing. The HUD displays each car's lap count, a color-coded tire wear bar, pit status (IN PIT / PIT SOON), and a safety car banner when active.
+A window will open showing a 2D elliptical track with five cars racing. The HUD displays each car's lap count, a color-coded tire wear bar, pit status (IN PIT / PIT SOON), and a safety car banner when active.
 
 ### Generating the dataset (Sprint 3)
 
@@ -101,5 +105,36 @@ python ml/collect_data.py
 ```
 
 This runs a headless simulation for 50 laps per car and writes `data/dataset.csv` with 9 features plus an oracle-generated `label` (0 = stay out, 1 = pit). Target pit ratio is 15–35%; the script prints the actual ratio after each run.
+
+### Training the NumPy NN (Sprint 4)
+
+From the project root:
+
+```bash
+python ml/train.py
+```
+
+This trains a 9→16→8→1 feedforward network (ReLU/ReLU/Sigmoid), then saves weights and normalization stats to:
+
+`models/nn_model.npz`
+
+### Evaluating the model (Sprint 4)
+
+```bash
+python ml/eval.py
+```
+
+`eval.py` loads `models/nn_model.npz` and reports:
+- Validation loss
+- Accuracy
+- Precision / Recall / F1
+- Confusion matrix (TN, FP, FN, TP)
+
+Latest run:
+- Accuracy: `0.9898`
+- Precision: `0.9807`
+- Recall: `0.9841`
+- F1: `0.9824`
+- Confusion matrix: `TN=3529, FP=28, FN=23, TP=1420`
 
 ## License
