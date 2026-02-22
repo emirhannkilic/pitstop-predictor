@@ -38,3 +38,6 @@ dist/
 build/
 *.egg-info/
 *.egg
+
+# Local experiment scripts
+ml/compare_strategies.py
