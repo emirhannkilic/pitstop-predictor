@@ -19,6 +19,9 @@ pitstop-predictor/
 │   ├── train.py        # Training + model saving
 │   └── eval.py         # Metrics + confusion matrix from saved model
 ├── data/               # CSV datasets
+│   ├── dataset.csv
+│   ├── strategy_comparison.csv
+│   └── strategy_comparison.png
 ├── models/             # Saved model (.npz)
 ├── requirements.txt
 └── README.md
@@ -30,7 +33,7 @@ pitstop-predictor/
 - [x] **Sprint 2** — Tire degradation, driving styles, traffic model, tire wear HUD, safety car, pit lane
 - [x] **Sprint 3** — Feature extraction, oracle labeling, CSV dataset generation
 - [x] **Sprint 4** — NumPy neural network, training pipeline, evaluation metrics
-- [ ] **Sprint 5** — Live prediction integration, dashboard UI, demo
+- [x] **Sprint 5** — Live prediction integration, mode toggle, strategy comparison
 
 ## Simulation Physics
 
@@ -94,7 +97,12 @@ cd sim
 python game.py
 ```
 
-A window will open showing a 2D elliptical track with five cars racing. The HUD displays each car's lap count, a color-coded tire wear bar, pit status (IN PIT / PIT SOON), and a safety car banner when active.
+A window will open showing a 2D elliptical track with five cars racing. The HUD displays each car's lap count, a color-coded tire wear bar, pit status (IN PIT / PIT SOON), safety car banner, and NN recommendation/confidence.
+
+Mode behavior in simulation:
+- `MODE: RECOMMENDATION` — NN only suggests `PIT/STAY OUT` on HUD
+- `MODE: AUTO (NN)` — NN suggestions are applied to pit decisions
+- Press `A` to toggle modes during runtime
 
 ### Generating the dataset (Sprint 3)
 
@@ -136,5 +144,20 @@ Latest run:
 - Recall: `0.9841`
 - F1: `0.9824`
 - Confusion matrix: `TN=3529, FP=28, FN=23, TP=1420`
+
+### Strategy Comparison (Sprint 5)
+
+Baseline vs NN-auto comparison is summarized in:
+- `data/strategy_comparison.csv`
+- `data/strategy_comparison.png` (bar chart)
+
+![Strategy Comparison](data/strategy_comparison.png)
+
+Latest run (`100` races, same seeds):
+- Baseline avg race seconds: `407.56`
+- NN Auto avg race seconds: `398.87`
+- NN gain vs baseline: `+8.70 sec`
+- Baseline avg lap seconds: `1.6303`
+- NN Auto avg lap seconds: `1.5955`
 
 ## License
