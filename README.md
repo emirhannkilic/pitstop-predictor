@@ -9,10 +9,10 @@ A deep learning project that predicts optimal Formula 1 pit stop strategies usin
 ```
 pitstop-predictor/
 ├── sim/                # 2D race simulation
-│   ├── game.py         # Main loop, safety car state machine, pit trigger logic
+│   ├── game.py         # Main loop, NN integration, mode toggle
 │   ├── car.py          # Car physics, tire wear, pit state machine (4-phase)
 │   ├── track.py        # Track geometry, pit lane (entry/exit zones, drawing)
-│   └── render.py       # HUD overlay (laps, tire bars, safety car, pit status)
+│   └── render.py       # HUD overlay (laps, tire bars, safety car, pit status, NN recommendation)
 ├── ml/                 # Data pipeline + NumPy NN
 │   ├── features.py     # 9 features per car at lap start
 │   ├── oracle.py       # Rule-based pit label (0/1)
@@ -20,7 +20,9 @@ pitstop-predictor/
 │   ├── nn_numpy.py     # 2 hidden-layer NN (forward/backprop)
 │   ├── train.py        # Training + model saving
 │   └── eval.py         # Metrics + confusion matrix from saved model
-├── data/               # CSV datasets
+├── assets/             # Media files
+│   └── demo.gif        # Simulation demo recording
+├── data/               # Generated outputs
 │   ├── dataset.csv
 │   ├── strategy_comparison.csv
 │   └── strategy_comparison.png
